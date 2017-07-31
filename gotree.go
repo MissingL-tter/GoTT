@@ -1,4 +1,4 @@
-package bst
+package gotree
 
 // Tree represent a binary Tree structure
 type Tree struct {
