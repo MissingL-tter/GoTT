@@ -1,56 +1,51 @@
 package gotree
 
-// Tree represent a binary Tree structure
+// Tree represent a binary tree structure
 type Tree struct {
 	Left  *Tree
-	Value float64
+	Value float32
 	Right *Tree
 }
 
-// Build takes some array of inputs and constructs a tree
-func Build(vals []float64) *Tree {
-	t := &Tree{}
-	var v float64
-	v, vals = vals[0], vals[1:]
+// Build takes some array of inputs and builds a binary search tree
+func Build(values []float32) *Tree {
 
-	t.Value = v
+	var val float32
+	val, values = values[0], values[1:]
 
-	for {
-		if len(vals) == 0 {
-			break
-		}
-		v, vals = vals[0], vals[1:]
-		t.Insert(v)
+	tree := &Tree{nil, val, nil}
+
+	for len(values) != 0 {
+		val, values = values[0], values[1:]
+
+		tree.Insert(val)
 	}
 
-	return t
+	return tree
 }
 
-// Insert inserts a new node with value v into the tree
-func (t *Tree) Insert(v float64) {
+// Insert inserts a new node with passed value into the tree
+func (tree *Tree) Insert(val float32) {
 
-	if v <= t.Value {
-		if t.Left != nil {
-			t.Left.Insert(v)
-		} else {
-			t.Left = &Tree{}
-			t.Left.Value = v
-		}
+	for tree.Left != nil && val <= tree.Value {
+		tree = tree.Left
+	}
+	for tree.Right != nil && val > tree.Value {
+		tree = tree.Right
+	}
+	if val <= tree.Value {
+		tree.Left = &Tree{nil, val, nil}
 	} else {
-		if t.Right != nil {
-			t.Right.Insert(v)
-		} else {
-			t.Right = &Tree{}
-			t.Right.Value = v
-		}
+		tree.Right = &Tree{nil, val, nil}
 	}
 }
 
-// PreOrder traverses over the tree visiting and printing out nodes before branching
-func PreOrder(t *Tree) {
-	if t != nil {
-		println(t.Value)
-		PreOrder(t.Left)
-		PreOrder(t.Right)
+// InOrder traverses over the tree branching left, visiting the node, and then branching right
+func InOrder(tree *Tree) {
+	if tree != nil {
+		InOrder(tree.Left)
+		// fmt.Printf("%v\n", tree.Value)
+		tree.Value += 0
+		InOrder(tree.Right)
 	}
 }
