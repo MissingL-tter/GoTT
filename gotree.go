@@ -10,16 +10,14 @@ type Tree struct {
 
 // Build takes some slice of float32s and builds a binary search tree
 func Build(values []float32) *Tree {
-
 	var val float32
 	val, values = values[0], values[1:]
 
 	tree := &Tree{nil, val, nil, nil}
+	pool := make([]Tree, len(values))
 
-	for len(values) != 0 {
-		val, values = values[0], values[1:]
-
-		tree.Insert(val)
+	for i := 0; i < len(values); i++ {
+		tree.Insert(values[i], &(pool[i]))
 	}
 
 	return tree
@@ -28,19 +26,19 @@ func Build(values []float32) *Tree {
 // Insert inserts a new node with passed value into the tree
 //
 // Values <= the current node's Value will branch left, while values > the current node's value will branch right
-func (tree *Tree) Insert(val float32) {
-
+func (root *Tree) Insert(val float32, tree *Tree) {
 	var parent *Tree
-	for tree != nil {
-		if val <= tree.Value {
-			parent = tree
-			tree = tree.Left
+	for root != nil {
+		if val <= root.Value {
+			parent = root
+			root = root.Left
 		} else {
-			parent = tree
-			tree = tree.Right
+			parent = root
+			root = root.Right
 		}
 	}
-	tree = &Tree{parent, val, nil, nil}
+	tree.Parent = parent
+	tree.Value = val
 	if val <= parent.Value {
 		parent.Left = tree
 	} else {
@@ -50,6 +48,7 @@ func (tree *Tree) Insert(val float32) {
 
 // InOrder traverses over the tree branching left, visiting the node, and then branching right
 func InOrder(tree *Tree) {
+
 	if tree != nil {
 		InOrder(tree.Left)
 		//fmt.Printf("%v\n", tree.Value)
@@ -59,13 +58,13 @@ func InOrder(tree *Tree) {
 }
 
 // Search does stuff
-func (tree *Tree) Search(val float32) *Tree {
-	for tree != nil && tree.Value != val {
-		if val <= tree.Value {
-			tree = tree.Left
+func (root *Tree) Search(val float32) *Tree {
+	for root != nil && root.Value != val {
+		if val <= root.Value {
+			root = root.Left
 		} else {
-			tree = tree.Right
+			root = root.Right
 		}
 	}
-	return tree
+	return root
 }
