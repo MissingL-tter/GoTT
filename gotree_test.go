@@ -10,14 +10,12 @@ import (
 	"time"
 )
 
-const treeSize = 100000
-
 var iters int
 var nodes int
 
 func init() {
 	flag.IntVar(&iters, "iters", 10, "The number of iterations to average execution time over")
-	flag.IntVar(&nodes, "nodes", 100000, "The size of the tree (number of nodes in the tree)")
+	flag.IntVar(&nodes, "nodes", 100000, "The number of nodes in the tree")
 }
 
 func TestGotree(t *testing.T) {
@@ -47,8 +45,8 @@ func TestGotree(t *testing.T) {
 }
 
 func BenchmarkTreeBuild(b *testing.B) {
-	vals := make([]float32, treeSize)
-	for i := 0; i < treeSize; i++ {
+	vals := make([]float32, nodes)
+	for i := 0; i < nodes; i++ {
 		vals[i] = float32(rand.Int())
 	}
 
@@ -60,7 +58,7 @@ func BenchmarkTreeBuild(b *testing.B) {
 
 func BenchmarkTreeTraverse(b *testing.B) {
 	vals := []float32{}
-	for i := 0; i < treeSize; i++ {
+	for i := 0; i < nodes; i++ {
 		vals = append(vals, float32(rand.Int()))
 	}
 
