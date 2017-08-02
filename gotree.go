@@ -1,5 +1,9 @@
 package gotree
 
+import (
+	"sync"
+)
+
 // Tree represents a binary tree structure
 type Tree struct {
 	Parent *Tree
@@ -18,6 +22,53 @@ func Build(values []float32) *Tree {
 
 	for i := 0; i < len(values); i++ {
 		tree.Insert(values[i], &(pool[i]))
+	}
+
+	return tree
+}
+
+// BuildParallel takes some slice of float32s and builds a binary search tree
+func BuildParallel(values []float32) *Tree {
+	var val float32
+	val, values = values[0], values[1:]
+
+	tree := &Tree{nil, val, nil, nil}
+	pool := make([]Tree, len(values))
+
+	i := 0
+	for ; i < len(values); i++ {
+		tree.Insert(values[i], &(pool[i]))
+		if tree.Left != nil && tree.Right != nil {
+			i++
+			break
+		}
+	}
+	if tree.Left != nil && tree.Right != nil {
+
+		wg := sync.WaitGroup{}
+		queuedAdder := func(subtree *Tree, q chan float32) {
+			for v := range q {
+				subtree.Insert(v, &Tree{})
+				wg.Done()
+			}
+		}
+		rightVals := make(chan float32, 1000)
+		//rightPool := make(chan *Tree, 1000)
+		leftVals := make(chan float32, 1000)
+		//leftPool := make(chan *Tree, 1000)
+
+		go queuedAdder(tree.Right, rightVals)
+		go queuedAdder(tree.Left, leftVals)
+
+		for ; i < len(values); i++ {
+			wg.Add(1)
+			if values[i] <= tree.Value {
+				leftVals <- values[i]
+			} else {
+				rightVals <- values[i]
+			}
+		}
+		wg.Wait()
 	}
 
 	return tree
@@ -47,13 +98,32 @@ func (root *Tree) Insert(val float32, tree *Tree) {
 }
 
 // InOrder traverses over the tree branching left, visiting the node, and then branching right
-func InOrder(tree *Tree) {
+func InOrder(tree *Tree, level int) {
 
 	if tree != nil {
-		InOrder(tree.Left)
-		//fmt.Printf("%v\n", tree.Value)
-		tree.Value += 0
-		InOrder(tree.Right)
+		if level == 2 {
+			wg := &sync.WaitGroup{}
+			wg.Add(2)
+			go func() {
+				inOrderFast(tree.Right)
+				wg.Done()
+			}()
+			go func() {
+				inOrderFast(tree.Left)
+				wg.Done()
+			}()
+			wg.Wait()
+		} else {
+			InOrder(tree.Right, level+1)
+			InOrder(tree.Left, level+1)
+		}
+	}
+}
+
+func inOrderFast(tree *Tree) {
+	if tree != nil {
+		inOrderFast(tree.Right)
+		inOrderFast(tree.Left)
 	}
 }
 

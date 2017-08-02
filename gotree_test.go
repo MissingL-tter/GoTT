@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-const treeSize = 100000
-
 var iters int
 var nodes int
 
@@ -34,7 +32,7 @@ func TestGotree(t *testing.T) {
 		buildSum += time.Since(start)
 
 		start = time.Now()
-		InOrder(tree)
+		InOrder(tree, 0)
 		traverseSum += time.Since(start)
 	}
 
@@ -47,8 +45,8 @@ func TestGotree(t *testing.T) {
 }
 
 func BenchmarkTreeBuild(b *testing.B) {
-	vals := make([]float32, treeSize)
-	for i := 0; i < treeSize; i++ {
+	vals := make([]float32, nodes)
+	for i := 0; i < nodes; i++ {
 		vals[i] = float32(rand.Int())
 	}
 
@@ -58,9 +56,21 @@ func BenchmarkTreeBuild(b *testing.B) {
 	}
 }
 
+func BenchmarkParallelBuild(b *testing.B) {
+	vals := make([]float32, nodes)
+	for i := 0; i < nodes; i++ {
+		vals[i] = float32(rand.Int())
+	}
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		BuildParallel(vals)
+	}
+}
+
 func BenchmarkTreeTraverse(b *testing.B) {
 	vals := []float32{}
-	for i := 0; i < treeSize; i++ {
+	for i := 0; i < nodes; i++ {
 		vals = append(vals, float32(rand.Int()))
 	}
 
@@ -68,6 +78,20 @@ func BenchmarkTreeTraverse(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		InOrder(tree)
+		inOrderFast(tree)
+	}
+}
+
+func BenchmarkParallelTraverse(b *testing.B) {
+	vals := []float32{}
+	for i := 0; i < nodes; i++ {
+		vals = append(vals, float32(rand.Int()))
+	}
+
+	tree := Build(vals)
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		InOrder(tree, 0)
 	}
 }
