@@ -103,12 +103,6 @@ func BenchmarkTreeBuild(b *testing.B) {
 	}
 }
 
-<<<<<<< HEAD
-// BenchmarkTreeTraverse provides a benchmark for traversing of a tree
-func BenchmarkTreeTraverse(b *testing.B) {
-	vals := []float32{}
-	for i := 0; i < nodes; i++ {
-=======
 func BenchmarkParallelBuild(b *testing.B) {
 	vals := make([]float32, nodes)
 	for i := 0; i < nodes; i++ {
@@ -138,7 +132,6 @@ func BenchmarkTreeTraverse(b *testing.B) {
 func BenchmarkParallelTraverse(b *testing.B) {
 	vals := []float32{}
 	for i := 0; i < nodes; i++ {
->>>>>>> b2d58ac6c991cd926b5c966eff2dd3594a76a268
 		vals = append(vals, float32(rand.Int()))
 	}
 

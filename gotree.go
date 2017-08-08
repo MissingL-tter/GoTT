@@ -1,12 +1,8 @@
 package gotree
 
-<<<<<<< HEAD
-import "sync"
-=======
 import (
 	"sync"
 )
->>>>>>> b2d58ac6c991cd926b5c966eff2dd3594a76a268
 
 // Tree represents a binary tree structure
 type Tree struct {
@@ -105,11 +101,7 @@ func (root *Tree) Insert(val float32, tree *Tree) {
 func InOrder(tree *Tree, level int) {
 
 	if tree != nil {
-<<<<<<< HEAD
-		if level == 1 {
-=======
 		if level == 2 {
->>>>>>> b2d58ac6c991cd926b5c966eff2dd3594a76a268
 			wg := &sync.WaitGroup{}
 			wg.Add(2)
 			go func() {
