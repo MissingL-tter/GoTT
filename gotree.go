@@ -1,6 +1,12 @@
 package gotree
 
+<<<<<<< HEAD
 import "sync"
+=======
+import (
+	"sync"
+)
+>>>>>>> b2d58ac6c991cd926b5c966eff2dd3594a76a268
 
 // Tree represents a binary tree structure
 type Tree struct {
@@ -20,6 +26,53 @@ func Build(values []float32) *Tree {
 
 	for i := 0; i < len(values); i++ {
 		tree.Insert(values[i], &(pool[i]))
+	}
+
+	return tree
+}
+
+// BuildParallel takes some slice of float32s and builds a binary search tree
+func BuildParallel(values []float32) *Tree {
+	var val float32
+	val, values = values[0], values[1:]
+
+	tree := &Tree{nil, val, nil, nil}
+	pool := make([]Tree, len(values))
+
+	i := 0
+	for ; i < len(values); i++ {
+		tree.Insert(values[i], &(pool[i]))
+		if tree.Left != nil && tree.Right != nil {
+			i++
+			break
+		}
+	}
+	if tree.Left != nil && tree.Right != nil {
+
+		wg := sync.WaitGroup{}
+		queuedAdder := func(subtree *Tree, q chan float32) {
+			for v := range q {
+				subtree.Insert(v, &Tree{})
+				wg.Done()
+			}
+		}
+		rightVals := make(chan float32, 1000)
+		//rightPool := make(chan *Tree, 1000)
+		leftVals := make(chan float32, 1000)
+		//leftPool := make(chan *Tree, 1000)
+
+		go queuedAdder(tree.Right, rightVals)
+		go queuedAdder(tree.Left, leftVals)
+
+		for ; i < len(values); i++ {
+			wg.Add(1)
+			if values[i] <= tree.Value {
+				leftVals <- values[i]
+			} else {
+				rightVals <- values[i]
+			}
+		}
+		wg.Wait()
 	}
 
 	return tree
@@ -52,7 +105,11 @@ func (root *Tree) Insert(val float32, tree *Tree) {
 func InOrder(tree *Tree, level int) {
 
 	if tree != nil {
+<<<<<<< HEAD
 		if level == 1 {
+=======
+		if level == 2 {
+>>>>>>> b2d58ac6c991cd926b5c966eff2dd3594a76a268
 			wg := &sync.WaitGroup{}
 			wg.Add(2)
 			go func() {
