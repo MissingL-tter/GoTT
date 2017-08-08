@@ -78,7 +78,7 @@ func TestGotree(t *testing.T) {
 		buildSum += time.Since(start)
 
 		start = time.Now()
-		InOrder(tree, 0)
+		InOrderParallel(tree)
 		traverseSum += time.Since(start)
 	}
 
@@ -90,8 +90,8 @@ func TestGotree(t *testing.T) {
 	writer.Flush()
 }
 
-// BenchmarkTreeBuild provides a benchmark for the building of a tree
-func BenchmarkTreeBuild(b *testing.B) {
+// BenchmarkBuild provides a benchmark for the building of a tree
+func BenchmarkBuild(b *testing.B) {
 	vals := make([]float32, nodes)
 	for i := 0; i < nodes; i++ {
 		vals[i] = float32(rand.Int())
@@ -103,7 +103,8 @@ func BenchmarkTreeBuild(b *testing.B) {
 	}
 }
 
-func BenchmarkParallelBuild(b *testing.B) {
+// BenchmarkBuildParallel provides a benchmark for the building of a tree making use of multiple threads
+func BenchmarkBuildParallel(b *testing.B) {
 	vals := make([]float32, nodes)
 	for i := 0; i < nodes; i++ {
 		vals[i] = float32(rand.Int())
@@ -115,7 +116,8 @@ func BenchmarkParallelBuild(b *testing.B) {
 	}
 }
 
-func BenchmarkTreeTraverse(b *testing.B) {
+// BenchmarkInOrder provides a benchmark for the in order traversal of a tree
+func BenchmarkInOrder(b *testing.B) {
 	vals := []float32{}
 	for i := 0; i < nodes; i++ {
 		vals = append(vals, float32(rand.Int()))
@@ -125,11 +127,12 @@ func BenchmarkTreeTraverse(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		inOrderFast(tree)
+		InOrder(tree)
 	}
 }
 
-func BenchmarkParallelTraverse(b *testing.B) {
+// BenchmarkInOrder provides a benchmark for the in order traversal of a tree making use of multiple threads
+func BenchmarkInOrderParallel(b *testing.B) {
 	vals := []float32{}
 	for i := 0; i < nodes; i++ {
 		vals = append(vals, float32(rand.Int()))
@@ -139,6 +142,6 @@ func BenchmarkParallelTraverse(b *testing.B) {
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		InOrder(tree, 0)
+		InOrderParallel(tree)
 	}
 }

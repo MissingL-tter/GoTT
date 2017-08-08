@@ -27,7 +27,7 @@ func Build(values []float32) *Tree {
 	return tree
 }
 
-// BuildParallel takes some slice of float32s and builds a binary search tree
+// BuildParallel takes some slice of float32s and builds a binary search tree making use of multiple threads
 func BuildParallel(values []float32) *Tree {
 	var val float32
 	val, values = values[0], values[1:]
@@ -98,32 +98,40 @@ func (root *Tree) Insert(val float32, tree *Tree) {
 }
 
 // InOrder traverses over the tree branching left, visiting the node, and then branching right
-func InOrder(tree *Tree, level int) {
+func InOrder(tree *Tree) {
 
 	if tree != nil {
-		if level == 2 {
+		InOrder(tree.Right)
+		InOrder(tree.Left)
+	}
+}
+
+// InOrderParallel performs in in order traversal of the tree making use of multiple threads
+func InOrderParallel(tree *Tree, level ...int) {
+
+	if level == nil {
+		level = []int{0}
+	}
+
+	println(level[0])
+
+	if tree != nil {
+		if level[0] == 2 {
 			wg := &sync.WaitGroup{}
 			wg.Add(2)
 			go func() {
-				inOrderFast(tree.Right)
+				InOrder(tree.Right)
 				wg.Done()
 			}()
 			go func() {
-				inOrderFast(tree.Left)
+				InOrder(tree.Left)
 				wg.Done()
 			}()
 			wg.Wait()
 		} else {
-			InOrder(tree.Right, level+1)
-			InOrder(tree.Left, level+1)
+			InOrderParallel(tree.Right, level[0]+1)
+			InOrderParallel(tree.Left, level[0]+1)
 		}
-	}
-}
-
-func inOrderFast(tree *Tree) {
-	if tree != nil {
-		inOrderFast(tree.Right)
-		inOrderFast(tree.Left)
 	}
 }
 
