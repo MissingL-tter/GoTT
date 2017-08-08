@@ -1,5 +1,7 @@
 package gotree
 
+import "sync"
+
 // Tree represents a binary tree structure
 type Tree struct {
 	Parent *Tree
@@ -47,13 +49,32 @@ func (root *Tree) Insert(val float32, tree *Tree) {
 }
 
 // InOrder traverses over the tree branching left, visiting the node, and then branching right
-func InOrder(tree *Tree) {
+func InOrder(tree *Tree, level int) {
 
 	if tree != nil {
-		InOrder(tree.Left)
-		//fmt.Printf("%v\n", tree.Value)
-		tree.Value += 0
-		InOrder(tree.Right)
+		if level == 1 {
+			wg := &sync.WaitGroup{}
+			wg.Add(2)
+			go func() {
+				inOrderFast(tree.Right)
+				wg.Done()
+			}()
+			go func() {
+				inOrderFast(tree.Left)
+				wg.Done()
+			}()
+			wg.Wait()
+		} else {
+			InOrder(tree.Right, level+1)
+			InOrder(tree.Left, level+1)
+		}
+	}
+}
+
+func inOrderFast(tree *Tree) {
+	if tree != nil {
+		inOrderFast(tree.Right)
+		inOrderFast(tree.Left)
 	}
 }
 
