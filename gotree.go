@@ -113,8 +113,6 @@ func InOrderParallel(tree *Tree, level ...int) {
 		level = []int{0}
 	}
 
-	println(level[0])
-
 	if tree != nil {
 		if level[0] == 2 {
 			wg := &sync.WaitGroup{}
