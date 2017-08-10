@@ -10,6 +10,7 @@ type Tree struct {
 	Value  float32
 	Left   *Tree
 	Right  *Tree
+	Level  int
 }
 
 // Build takes some slice of float32s and builds a binary search tree
@@ -17,58 +18,11 @@ func Build(values []float32) *Tree {
 	var val float32
 	val, values = values[0], values[1:]
 
-	tree := &Tree{nil, val, nil, nil}
+	tree := &Tree{nil, val, nil, nil, 0}
 	pool := make([]Tree, len(values))
 
 	for i := 0; i < len(values); i++ {
 		tree.Insert(values[i], &(pool[i]))
-	}
-
-	return tree
-}
-
-// BuildParallel takes some slice of float32s and builds a binary search tree making use of multiple threads
-func BuildParallel(values []float32) *Tree {
-	var val float32
-	val, values = values[0], values[1:]
-
-	tree := &Tree{nil, val, nil, nil}
-	pool := make([]Tree, len(values))
-
-	i := 0
-	for ; i < len(values); i++ {
-		tree.Insert(values[i], &(pool[i]))
-		if tree.Left != nil && tree.Right != nil {
-			i++
-			break
-		}
-	}
-	if tree.Left != nil && tree.Right != nil {
-
-		wg := sync.WaitGroup{}
-		queuedAdder := func(subtree *Tree, q chan float32) {
-			for v := range q {
-				subtree.Insert(v, &Tree{})
-				wg.Done()
-			}
-		}
-		rightVals := make(chan float32, 1000)
-		//rightPool := make(chan *Tree, 1000)
-		leftVals := make(chan float32, 1000)
-		//leftPool := make(chan *Tree, 1000)
-
-		go queuedAdder(tree.Right, rightVals)
-		go queuedAdder(tree.Left, leftVals)
-
-		for ; i < len(values); i++ {
-			wg.Add(1)
-			if values[i] <= tree.Value {
-				leftVals <- values[i]
-			} else {
-				rightVals <- values[i]
-			}
-		}
-		wg.Wait()
 	}
 
 	return tree
@@ -90,6 +44,7 @@ func (root *Tree) Insert(val float32, tree *Tree) {
 	}
 	tree.Parent = parent
 	tree.Value = val
+	tree.Level = parent.Level + 1
 	if val <= parent.Value {
 		parent.Left = tree
 	} else {
@@ -98,43 +53,45 @@ func (root *Tree) Insert(val float32, tree *Tree) {
 }
 
 // InOrder traverses over the tree branching left, visiting the node, and then branching right
-func InOrder(tree *Tree) {
+func (root *Tree) InOrder() {
 
-	if tree != nil {
-		InOrder(tree.Right)
-		InOrder(tree.Left)
+	if root != nil {
+		root.Left.InOrder()
+		//Print or visit node
+		root.Right.InOrder()
 	}
 }
 
 // InOrderParallel performs in in order traversal of the tree making use of multiple threads
-func InOrderParallel(tree *Tree, level ...int) {
+func (root *Tree) InOrderParallel() {
 
-	if level == nil {
-		level = []int{0}
-	}
-
-	if tree != nil {
-		if level[0] == 2 {
+	if root != nil {
+		if root.Level <= 8 {
 			wg := &sync.WaitGroup{}
 			wg.Add(2)
 			go func() {
-				InOrder(tree.Right)
-				wg.Done()
+				defer wg.Done()
+				root.Left.InOrderParallel()
 			}()
+			//Print or visit node
 			go func() {
-				InOrder(tree.Left)
-				wg.Done()
+				defer wg.Done()
+				root.Right.InOrderParallel()
 			}()
 			wg.Wait()
 		} else {
-			InOrderParallel(tree.Right, level[0]+1)
-			InOrderParallel(tree.Left, level[0]+1)
+			root.Left.InOrderParallel()
+			//Print or visit node
+			root.Right.InOrderParallel()
 		}
 	}
 }
 
-// Search does stuff
+// Search performs a search on tree given some float32, and returns the node that contains that val.
+//
+// If the tree contains duplicates this will return only the first found
 func (root *Tree) Search(val float32) *Tree {
+
 	for root != nil && root.Value != val {
 		if val <= root.Value {
 			root = root.Left
@@ -142,5 +99,6 @@ func (root *Tree) Search(val float32) *Tree {
 			root = root.Right
 		}
 	}
+
 	return root
 }
